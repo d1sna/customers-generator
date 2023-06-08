@@ -1,6 +1,8 @@
+import { ICustomerFields } from "../interfaces/customer-fields.interface";
+
 const { faker } = require("@faker-js/faker");
 
-export function generateCustomer() {
+export function generateCustomer(): ICustomerFields {
   return {
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),

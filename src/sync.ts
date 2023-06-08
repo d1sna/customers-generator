@@ -79,6 +79,19 @@ async function start() {
     CUSTOMERS_ANONYMIZED_COLLECTION_NAME
   );
 
+  const notSynchronizedOperationsDocuments = await customersAuditCollection
+    .find({ synchronized: false })
+    .toArray();
+
+  notSynchronizedOperationsDocuments.forEach((document) => {
+    const operation: IMongodbOperationInfo = document.operation;
+    const bulkCommand = createBulkCommandByOperation(operation);
+    if (bulkCommand) {
+      bulkCommandsArray.push(bulkCommand);
+      notSynchronizedOperationsIdsArray.push(operation._id._data);
+    }
+  });
+
   let bulkCommandsArray: Array<any> = [];
   let notSynchronizedOperationsIdsArray: Array<string> = [];
 
