@@ -4,6 +4,7 @@ import {
   CUSTOMERS_ANONYMIZED_COLLECTION_NAME,
   CUSTOMERS_AUDIT_COLLECTION_NAME,
   CUSTOMERS_COLLECTION_NAME,
+  FULL_SYNC_LAUNCH_ARGUMENT,
 } from "./lib/constants";
 import { getMongodbUriFromEnv } from "./lib/get-mongodb-uri-from-env";
 import IMongodbOperationInfo from "./interfaces/mongodb-operation-info.interface";
@@ -108,12 +109,12 @@ async function start() {
     CUSTOMERS_ANONYMIZED_COLLECTION_NAME
   );
 
-  const args = process.argv.slice(2);
+  const currentLaunchArguments = process.argv.slice(2);
 
   let bulkCommandsArray: Array<any> = [];
   let notSynchronizedOperationsIdsArray: Array<string> = [];
 
-  if (args.includes("--full-reindex")) {
+  if (currentLaunchArguments.includes(FULL_SYNC_LAUNCH_ARGUMENT)) {
     await executeFullSynchronization(
       customersCollection,
       customersAnonymizedCollection,
