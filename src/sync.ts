@@ -65,6 +65,32 @@ async function executeSynchronization(
 }
 
 //----------------------------------------------------------------------------------------------------------------//
+async function executeFullSynchronization(
+  customersCollection: mongoose.Collection,
+  customersAnonymizedCollection: mongoose.Collection,
+  customersAuditCollection: mongoose.Collection
+) {
+  const allCustomers = await customersCollection.find().toArray() as ICustomerFields[];
+  const anonymizedCustomers = allCustomers.map(anonymizeCustomerFields);
+
+  const bulkCommands = anonymizedCustomers.map((anonymizedCustomer) => ({
+    updateOne: {
+      filter: { _id: anonymizedCustomer._id },
+      update: { $set: anonymizedCustomer },
+      upsert: true,
+    },
+  }));
+
+  await customersAnonymizedCollection.bulkWrite(bulkCommands);
+  await customersAuditCollection.updateMany(
+    {},
+    { $set: { synchronized: true } }
+  );
+
+  log("> FULL SYNCHRONIZATION COMPLETE");
+}
+
+//----------------------------------------------------------------------------------------------------------------//
 async function start() {
   const mongoUri = getMongodbUriFromEnv();
   await connectToMongoDb(mongoUri);
@@ -78,6 +104,20 @@ async function start() {
   const customersAnonymizedCollection = mongoose.connection.collection(
     CUSTOMERS_ANONYMIZED_COLLECTION_NAME
   );
+  
+  const args = process.argv.slice(2);
+
+  let bulkCommandsArray: Array<any> = [];
+  let notSynchronizedOperationsIdsArray: Array<string> = [];
+
+  if (args.includes("--full-reindex")) {
+    await executeFullSynchronization(
+      customersCollection,
+      customersAnonymizedCollection,
+      customersAuditCollection
+    );
+    process.exit(0);
+  }
 
   const notSynchronizedOperationsDocuments = await customersAuditCollection
     .find({ synchronized: false })
@@ -91,9 +131,6 @@ async function start() {
       notSynchronizedOperationsIdsArray.push(operation._id._data);
     }
   });
-
-  let bulkCommandsArray: Array<any> = [];
-  let notSynchronizedOperationsIdsArray: Array<string> = [];
 
   customersCollection
     .watch()

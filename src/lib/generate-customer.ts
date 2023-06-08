@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import { ICustomerFields } from "../interfaces/customer-fields.interface";
 
 const { faker } = require("@faker-js/faker");
 
 export function generateCustomer(): ICustomerFields {
   return {
+    _id: new mongoose.Types.ObjectId(),
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
     email: faker.internet.email(),

@@ -1,11 +1,12 @@
 import { Types } from "mongoose";
+import { ICustomerFields } from "./customer-fields.interface";
 
 export default interface IMongodbOperationInfo {
   _id: { _data: string };
   operationType: string;
-  fullDocument: object;
+  fullDocument: ICustomerFields;
   updateDescription: {
-    updatedFields: object;
+    updatedFields: ICustomerFields;
   };
   documentKey: {
     _id: Types.ObjectId;
