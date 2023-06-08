@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "app": "npx ts-node src/app.ts",
-    "sync": "npx ts-node src/sync.ts"
+    "sync": "npx ts-node src/sync.ts",
+    "lint": "npx prettier  --write ./"
   },
   "author": "Alexander Dis",
   "devDependencies": {
