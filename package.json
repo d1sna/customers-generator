@@ -1,0 +1,21 @@
+{
+    "name": "customers-generator",
+    "version": "1.0.0",
+    "scripts": {
+        "app": "npx ts-node src/app.ts",
+        "sync": "npx ts-node src/sync.ts"
+    },
+    "author": "Alexander Dis",
+    "devDependencies": {
+        "@faker-js/faker": "^8.0.2",
+        "@types/bcrypt": "^5.0.0",
+        "@types/lodash": "^4.14.195",
+        "lodash": "^4.17.21",
+        "prettier": "^2.8.8"
+    },
+    "dependencies": {
+        "bcrypt": "^5.1.0",
+        "dotenv": "^16.1.4",
+        "mongoose": "^7.2.1"
+    }
+}
