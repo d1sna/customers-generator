@@ -60,6 +60,7 @@ async function executeSynchronization(
   );
   await session.endSession();
 
+  log("> SYNCHRONIZED DOCUMENTS BATCH :", bulkCommands.length);
   bulkCommands.length = 0;
   lastOperationsIds.length = 0;
 }
@@ -70,7 +71,9 @@ async function executeFullSynchronization(
   customersAnonymizedCollection: mongoose.Collection,
   customersAuditCollection: mongoose.Collection
 ) {
-  const allCustomers = await customersCollection.find().toArray() as ICustomerFields[];
+  const allCustomers = (await customersCollection
+    .find()
+    .toArray()) as ICustomerFields[];
   const anonymizedCustomers = allCustomers.map(anonymizeCustomerFields);
 
   const bulkCommands = anonymizedCustomers.map((anonymizedCustomer) => ({
@@ -104,7 +107,7 @@ async function start() {
   const customersAnonymizedCollection = mongoose.connection.collection(
     CUSTOMERS_ANONYMIZED_COLLECTION_NAME
   );
-  
+
   const args = process.argv.slice(2);
 
   let bulkCommandsArray: Array<any> = [];
@@ -122,6 +125,7 @@ async function start() {
   const notSynchronizedOperationsDocuments = await customersAuditCollection
     .find({ synchronized: false })
     .toArray();
+  log("> FOUND MISSED OPERATIONS :", notSynchronizedOperationsDocuments.length);
 
   notSynchronizedOperationsDocuments.forEach((document) => {
     const operation: IMongodbOperationInfo = document.operation;
@@ -135,8 +139,6 @@ async function start() {
   customersCollection
     .watch()
     .on("change", async (operation: IMongodbOperationInfo) => {
-      log({ operation });
-
       if (bulkCommandsArray.length >= 1000) {
         await executeSynchronization(
           bulkCommandsArray,
@@ -152,6 +154,15 @@ async function start() {
         notSynchronizedOperationsIdsArray.push(operation._id._data);
       }
     });
+
+  setInterval(async () => {
+    await executeSynchronization(
+      bulkCommandsArray,
+      notSynchronizedOperationsIdsArray,
+      customersAnonymizedCollection,
+      customersAuditCollection
+    );
+  }, 1000);
 }
 
 start();

@@ -10,6 +10,7 @@ import { getRandomNumberFromInterval } from "./lib/get-random-number-from-interv
 import { generateCustomer } from "./lib/generate-customer";
 import IMongodbOperationInfo from "./interfaces/mongodb-operation-info.interface";
 import { ICustomerFields } from "./interfaces/customer-fields.interface";
+import { log } from "console";
 
 async function start() {
   const mongoUri = getMongodbUriFromEnv();
@@ -45,7 +46,10 @@ async function start() {
       generatedCustomers.push(generatedCustomer);
     }
 
-    await customersCollection.insertMany(generatedCustomers);
+    const operationResult = await customersCollection.insertMany(
+      generatedCustomers
+    );
+    log("> CREATED CUSTOMERS :", operationResult.insertedCount);
   }, 200);
 }
 
