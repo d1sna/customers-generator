@@ -50,7 +50,7 @@ export class SynchronizationService {
   }
 
   //----------------------------------------------------------------------------------------------------------------//
- public async handleMissedOperations() {
+  public async handleMissedOperations() {
     const notSynchronizedOperationsDocuments =
       await this.customersAuditRepository.findNotSynchronizedDocuments();
     log(
@@ -63,7 +63,7 @@ export class SynchronizationService {
     );
   }
 
-    //----------------------------------------------------------------------------------------------------------------//
+  //----------------------------------------------------------------------------------------------------------------//
   public executeSynchronizationEverySecond() {
     setInterval(async () => await this.executeSynchronization(), ONE_SECOND);
   }
@@ -100,12 +100,19 @@ export class SynchronizationService {
   //----------------------------------------------------------------------------------------------------------------//
   public async executeFullSynchronization() {
     const allCustomers = await this.customersRepository.getAllDocuments();
+    const lastOperation = await this.customersAuditRepository.getLastDocument();
     const anonymizedCustomers = allCustomers.map(anonymizeCustomerFields);
 
     await this.customersAnonymizedRepository.upsertDocumentsBatch(
       anonymizedCustomers
     );
-    await this.customersAuditRepository.setAllDocumentsSynchronized();
+
+    if (lastOperation) {
+      const lastOperationId = new mongoose.Types.ObjectId(lastOperation._id);
+      await this.customersAuditRepository.setAllBelowIdSynchronized(
+        lastOperationId
+      );
+    }
 
     log("> FULL SYNCHRONIZATION COMPLETE");
     process.exit(0);

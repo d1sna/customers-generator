@@ -6,11 +6,16 @@ export class CustomersAuditRepository {
   }
 
   //----------------------------------------------------------------------------------------------------------------//
-  async setAllDocumentsSynchronized() {
+  async setAllBelowIdSynchronized(id: mongoose.Types.ObjectId) {
     return this.customersAuditCollection.updateMany(
-      {},
+      { _id: { $lte: id } },
       { $set: { synchronized: true } }
     );
+  }
+
+  //----------------------------------------------------------------------------------------------------------------//
+  async getLastDocument() {
+    return this.customersAuditCollection.findOne({}, { sort: { _id: -1 } });
   }
 
   //----------------------------------------------------------------------------------------------------------------//
