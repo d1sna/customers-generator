@@ -95,7 +95,7 @@ async function executeFullSynchronization(
 }
 
 //----------------------------------------------------------------------------------------------------------------//
-async function start() {
+async function startSynchronizationApp() {
   const mongoUri = getMongodbUriFromEnv();
   await connectToMongoDb(mongoUri);
 
@@ -166,4 +166,4 @@ async function start() {
   }, 1000);
 }
 
-start();
+startSynchronizationApp();

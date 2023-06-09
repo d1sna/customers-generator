@@ -12,7 +12,7 @@ import IMongodbOperationInfo from "./interfaces/mongodb-operation-info.interface
 import { ICustomerFields } from "./interfaces/customer-fields.interface";
 import { log } from "console";
 
-async function start() {
+async function startCustomerGeneratorApp() {
   const mongoUri = getMongodbUriFromEnv();
   await connectToMongoDb(mongoUri);
 
@@ -53,4 +53,4 @@ async function start() {
   }, 200);
 }
 
-start();
+startCustomerGeneratorApp();
