@@ -32,3 +32,6 @@ Node v.16.17.1
 
 - `npm run lint` - formatting all applications code by prettier default
 - `npm run build` - build application
+- `npm run app:dev` - build and start generating customers application
+- `npm run sync:dev` - build and start synchronization application [REAL TIME MODE]
+- `npm run syncFull:dev` - build and start synchronization application [FULL SYNC MODE]

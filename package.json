@@ -4,8 +4,11 @@
   "scripts": {
     "build": "tsc",
     "app": "node dist/app.js",
+    "app:dev": "tsc & node dist/app.js",
     "sync": "node dist/sync.js",
+    "sync:dev": "tsc & node dist/sync.js",
     "syncFull": "node dist/sync.js --full-reindex",
+    "syncFull:dev": "tsc & node dist/sync.js --full-reindex",
     "lint": "npx prettier  --write ./"
   },
   "author": "Alexander Dis",
