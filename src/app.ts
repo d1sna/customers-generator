@@ -8,7 +8,7 @@ async function startCustomersGeneratorApp() {
   const customerGeneratorService =
     CustomerGeneratorService.createFromMongooseCollections();
 
-  customerGeneratorService.writeOperationsHistory();
+  customerGeneratorService.startAuditForCustomersCollection();
   customerGeneratorService.createCustomersEveryTwoHundredMs();
 }
 

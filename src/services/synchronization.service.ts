@@ -10,6 +10,7 @@ import {
   CUSTOMERS_ANONYMIZED_COLLECTION_NAME,
   CUSTOMERS_AUDIT_COLLECTION_NAME,
   CUSTOMERS_COLLECTION_NAME,
+  MAX_BATCH_SIZE,
   ONE_SECOND,
 } from "../lib/constants";
 
@@ -44,8 +45,8 @@ export class SynchronizationService {
 
   //----------------------------------------------------------------------------------------------------------------//
   public addListenerToCustomersChanges() {
-    this.customersRepository.addChangesListener((operation) =>
-      this.handleOperation(operation)
+    this.customersRepository.addChangesListener(
+      async (operation) => await this.handleOperation(operation)
     );
   }
 
@@ -58,8 +59,8 @@ export class SynchronizationService {
       notSynchronizedOperationsDocuments.length
     );
 
-    notSynchronizedOperationsDocuments.forEach((document) =>
-      this.handleOperation(document.operation)
+    notSynchronizedOperationsDocuments.forEach(
+      async (document) => await this.handleOperation(document.operation)
     );
   }
 
@@ -82,18 +83,20 @@ export class SynchronizationService {
     this.notSynchronizedOperationsIds.length = 0;
 
     const session: mongoose.ClientSession = await mongoose.startSession();
-    await this.customersAnonymizedRepository.upsertDocumentsBatch(
-      currentCustomersAnonymizedDocuments,
-      session
-    );
+    const operationResult =
+      await this.customersAnonymizedRepository.upsertDocumentsBatch(
+        currentCustomersAnonymizedDocuments,
+        session
+      );
     await this.customersAuditRepository.setDocumentsSynchronizedByIds(
-      currentNotSynchronizedOperationsIds
+      currentNotSynchronizedOperationsIds,
+      session
     );
     await session.endSession();
 
     log(
       "> SYNCHRONIZED DOCUMENTS IN CURRENT BATCH :",
-      currentCustomersAnonymizedDocuments.length
+      operationResult.upsertedCount
     );
   }
 
@@ -103,9 +106,10 @@ export class SynchronizationService {
     const lastOperation = await this.customersAuditRepository.getLastDocument();
     const anonymizedCustomers = allCustomers.map(anonymizeCustomerFields);
 
-    await this.customersAnonymizedRepository.upsertDocumentsBatch(
-      anonymizedCustomers
-    );
+    while (anonymizedCustomers.length) {
+      const batch = anonymizedCustomers.splice(0, MAX_BATCH_SIZE);
+      await this.customersAnonymizedRepository.upsertDocumentsBatch(batch);
+    }
 
     if (lastOperation) {
       const lastOperationId = new mongoose.Types.ObjectId(lastOperation._id);
@@ -120,7 +124,7 @@ export class SynchronizationService {
 
   //----------------------------------------------------------------------------------------------------------------//
   private async handleOperation(operation: IMongodbOperationInfo) {
-    if (this.customerAnonymizedDocuments.length >= 1000) {
+    if (this.customerAnonymizedDocuments.length >= MAX_BATCH_SIZE) {
       await this.executeSynchronization();
     }
 
@@ -135,10 +139,13 @@ export class SynchronizationService {
     }
 
     if (operationType === "update") {
-      const anonymizedCustomerFields = anonymizeCustomerFields({
+      const customerUpdatedFields = {
         ...documentKey,
         ...updateDescription.updatedFields,
-      });
+      };
+      const anonymizedCustomerFields = anonymizeCustomerFields(
+        customerUpdatedFields
+      );
       this.customerAnonymizedDocuments.push(anonymizedCustomerFields);
       this.notSynchronizedOperationsIds.push(currentOperationId);
     }

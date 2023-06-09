@@ -33,7 +33,7 @@ export class CustomerGeneratorService {
   }
 
   //----------------------------------------------------------------------------------------------------------------//
-  writeOperationsHistory() {
+  public startAuditForCustomersCollection() {
     this.customersRepository.addChangesListener(
       async (operation: IMongodbOperationInfo) => {
         if (["insert", "update"].includes(operation.operationType)) {
@@ -44,7 +44,7 @@ export class CustomerGeneratorService {
   }
 
   //----------------------------------------------------------------------------------------------------------------//
-  createCustomersEveryTwoHundredMs() {
+  public createCustomersEveryTwoHundredMs() {
     setInterval(async () => {
       const randomNumberFromOneToTen: number = getRandomNumberFromInterval(
         1,
@@ -60,12 +60,15 @@ export class CustomerGeneratorService {
       const operationResult = await this.customersRepository.insertBatch(
         generatedCustomers
       );
-      log("> CREATED CUSTOMERS :", operationResult.insertedCount);
+      log(
+        "> CREATED CUSTOMERS IN CURRENT BATCH :",
+        operationResult.insertedCount
+      );
     }, 200);
   }
 
   //----------------------------------------------------------------------------------------------------------------//
-  generateCustomer(): ICustomerFields {
+  private generateCustomer(): ICustomerFields {
     return {
       _id: new mongoose.Types.ObjectId(),
       firstName: faker.person.firstName(),

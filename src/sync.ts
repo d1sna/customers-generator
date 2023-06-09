@@ -11,9 +11,8 @@ const startSynchronizationApp = async () => {
     SynchronizationService.createFromMongooseCollections();
 
   const currentLaunchArguments = process.argv.slice(2);
-  if (currentLaunchArguments.includes(FULL_SYNC_LAUNCH_ARGUMENT)) {
+  if (currentLaunchArguments.includes(FULL_SYNC_LAUNCH_ARGUMENT))
     await synchronizationService.executeFullSynchronization();
-  }
 
   await synchronizationService.handleMissedOperations();
   synchronizationService.addListenerToCustomersChanges();
